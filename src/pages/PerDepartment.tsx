@@ -1,14 +1,17 @@
-import React from 'react';
-import TabsMenu from '../components/TabsMenu';
-import { projectsData } from '../data/projectsData';
+import React from "react";
+import TabsMenu from "../components/TabsMenu";
+import { projectsData } from "../data/projectsData";
+import { Project } from "../types/Project";
 
 const PerDepartment: React.FC = () => {
-  // 🧠 Get all unique department names
-  const departments = Array.from(new Set(projectsData.map((p) => p.department))).sort();
+  
+  const departments = Array.from(
+    new Set(projectsData.map((p: Project) => p.department_name))
+  ).sort();
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <TabsMenu />
+      <TabsMenu onFilterChange={() => {}} />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
@@ -17,9 +20,11 @@ const PerDepartment: React.FC = () => {
 
         {departments.map((dept) => {
           // Filter projects by department
-          const departmentProjects = projectsData.filter((p) => p.department === dept);
+          const departmentProjects = projectsData.filter(
+            (p: Project) => p.department_name === dept
+          );
 
-          // 🟡 Skip departments with no projects
+          
           if (departmentProjects.length === 0) return null;
 
           return (
@@ -29,9 +34,9 @@ const PerDepartment: React.FC = () => {
               </h3>
 
               <ul className="list-disc pl-8 space-y-1 text-gray-700">
-                {departmentProjects.map((p) => (
+                {departmentProjects.map((p: Project) => (
                   <li key={p.id} className="leading-relaxed">
-                    <span className="font-medium">{p.title}</span> —{' '}
+                    <span className="font-medium">{p.title}</span> —{" "}
                     <span className="italic text-gray-500">{p.status}</span>
                   </li>
                 ))}

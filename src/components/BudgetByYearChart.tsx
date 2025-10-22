@@ -9,7 +9,7 @@ interface ChartProps {
 const BudgetByYearChart = ({ projects }: ChartProps) => {
   const groupedData = Object.entries(
     projects.reduce((acc: any, p) => {
-      acc[p.financialYear] = (acc[p.financialYear] || 0) + p.budget;
+      acc[p.financial_year_name] = (acc[p.financial_year_name] || 0) + p.budget;
       return acc;
     }, {})
   ).map(([year, budget]) => ({ year, budget }));

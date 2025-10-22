@@ -1,14 +1,17 @@
-import React from 'react';
-import TabsMenu from '../components/TabsMenu';
-import { projectsData } from '../data/projectsData';
+import React from "react";
+import TabsMenu from "../components/TabsMenu";
+import { projectsData } from "../data/projectsData";
+import { Project } from "../types/Project";
 
 const PerWard: React.FC = () => {
   // 🧠 Get all unique ward names
-  const wards = Array.from(new Set(projectsData.map((p) => p.ward))).sort();
+  const wards = Array.from(
+    new Set(projectsData.map((p: Project) => p.ward_name))
+  ).sort();
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <TabsMenu />
+      <TabsMenu onFilterChange={() => {}} />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
@@ -16,10 +19,10 @@ const PerWard: React.FC = () => {
         </h2>
 
         {wards.map((ward) => {
-          // Filter projects for this ward
-          const wardProjects = projectsData.filter((p) => p.ward === ward);
+          const wardProjects = projectsData.filter(
+            (p: Project) => p.ward_name === ward
+          );
 
-          // 🟡 Skip wards that currently have no projects
           if (wardProjects.length === 0) return null;
 
           return (
@@ -29,9 +32,9 @@ const PerWard: React.FC = () => {
               </h3>
 
               <ul className="list-disc pl-8 space-y-1 text-gray-700">
-                {wardProjects.map((project) => (
+                {wardProjects.map((project: Project) => (
                   <li key={project.id} className="leading-relaxed">
-                    <span className="font-medium">{project.title}</span> —{' '}
+                    <span className="font-medium">{project.title}</span> —{" "}
                     <span className="italic text-gray-500">{project.status}</span>
                   </li>
                 ))}

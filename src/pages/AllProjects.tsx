@@ -47,7 +47,7 @@ const AllProjects: React.FC = () => {
           </thead>
 
           <tbody className="bg-white divide-y divide-gray-200">
-            {projectsData.map((project, index) => (
+            {(projectsData as Project[]).map((project, index) => (
               <tr
                 key={project.id}
                 className={`hover:bg-green-50 transition duration-150 ${
@@ -61,13 +61,13 @@ const AllProjects: React.FC = () => {
                   {project.title}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700">
-                  {project.department}
+                  {project.department_name}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700">
-                  {project.ward}
+                  {project.ward_name}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700">
-                  {project.financialYear}
+                  {project.financial_year_name}
                 </td>
                 <td
                   className={`px-4 py-3 text-sm font-semibold ${
@@ -81,7 +81,9 @@ const AllProjects: React.FC = () => {
                   {project.status}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700">
-                  {project.budget.toLocaleString()}
+                  {project.budget
+                    ? Number(project.budget).toLocaleString()
+                    : "—"}
                 </td>
                 <td className="px-4 py-3 text-center">
                   <button
@@ -97,7 +99,7 @@ const AllProjects: React.FC = () => {
         </table>
       </div>
 
-      {/* Project Details Modal */}
+      {/* ✅ Project Details Modal */}
       {selectedProject && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-[90%] md:w-[60%] shadow-2xl relative">
@@ -110,12 +112,17 @@ const AllProjects: React.FC = () => {
             <h3 className="text-xl font-bold text-green-800 mb-3">
               {selectedProject.title}
             </h3>
-            <p><strong>Department:</strong> {selectedProject.department}</p>
-            <p><strong>Ward:</strong> {selectedProject.ward}</p>
-            <p><strong>Financial Year:</strong> {selectedProject.financialYear}</p>
+            <p><strong>Department:</strong> {selectedProject.department_name}</p>
+            <p><strong>Ward:</strong> {selectedProject.ward_name}</p>
+            <p><strong>Financial Year:</strong> {selectedProject.financial_year_name}</p>
             <p><strong>Status:</strong> {selectedProject.status}</p>
-            <p><strong>Contractor:</strong> {selectedProject.contractor}</p>
-            <p><strong>Budget:</strong> KES {selectedProject.budget.toLocaleString()}</p>
+            <p><strong>Contractor:</strong> {selectedProject.contractor_name ?? "—"}</p>
+            <p>
+              <strong>Budget:</strong> KES{" "}
+              {selectedProject.budget
+                ? Number(selectedProject.budget).toLocaleString()
+                : "—"}
+            </p>
             <p className="mt-3 text-gray-700 leading-relaxed">
               <strong>Description:</strong> {selectedProject.description}
             </p>

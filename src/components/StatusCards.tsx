@@ -1,40 +1,59 @@
-import { Project } from "../types/Project";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-interface StatusCardsProps {
-  projects: Project[];
+interface Stats {
+  total_projects: number;
+  completed: number;
+  ongoing: number;
+  pending: number;
+  not_started: number;
+  total_budget: string;
 }
 
-const StatusCards = ({ projects }: StatusCardsProps) => {
-  const completed = projects.filter((p) => p.status === "Completed").length;
-  const ongoing = projects.filter((p) => p.status === "Ongoing").length;
-  const pending = projects.filter((p) => p.status === "Pending").length;
-  const notStarted = projects.filter((p) => p.status === "Not Started").length;
-  const totalBudget = projects.reduce((sum, p) => sum + p.budget, 0);
-  const totalProjects = projects.length;
+const StatusCards = () => {
+  const [stats, setStats] = useState<Stats | null>(null);
+
+  useEffect(() => {
+    axios
+      .get("http://192.168.100.149:8000/projects/statistics/")
+      .then((res) => setStats(res.data))
+      .catch((err) => console.error("Error fetching statistics:", err));
+  }, []);
+
+  if (!stats)
+    return (
+      <p className="text-center text-gray-600 mt-6">Loading statistics...</p>
+    );
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 py-4 px-3 select-none cursor-default">
-      <div className="bg-green-600 text-white text-center p-4 rounded-lg shadow-sm">
-        <p className="text-2xl sm:text-3xl font-bold">{completed}</p>
-        <p className="text-xs sm:text-sm">Completed</p>
+    <div className="grid grid-cols-5 gap-4 mb-6">
+      <div className="bg-green-600 text-white text-center p-4 rounded-xl">
+        <h2 className="text-3xl font-bold">{stats.completed}</h2>
+        <p>Completed</p>
       </div>
-      <div className="bg-blue-600 text-white text-center p-4 rounded-lg shadow-sm">
-        <p className="text-2xl sm:text-3xl font-bold">{ongoing}</p>
-        <p className="text-xs sm:text-sm">Ongoing</p>
+
+      <div className="bg-blue-600 text-white text-center p-4 rounded-xl">
+        <h2 className="text-3xl font-bold">{stats.ongoing}</h2>
+        <p>Ongoing</p>
       </div>
-      <div className="bg-yellow-500 text-white text-center p-4 rounded-lg shadow-sm">
-        <p className="text-2xl sm:text-3xl font-bold">{pending}</p>
-        <p className="text-xs sm:text-sm">Pending</p>
+
+      <div className="bg-yellow-500 text-white text-center p-4 rounded-xl">
+        <h2 className="text-3xl font-bold">{stats.pending}</h2>
+        <p>Pending</p>
       </div>
-      <div className="bg-gray-500 text-white text-center p-4 rounded-lg shadow-sm">
-        <p className="text-2xl sm:text-3xl font-bold">{notStarted}</p>
-        <p className="text-xs sm:text-sm">Not Started</p>
+
+      <div className="bg-gray-600 text-white text-center p-4 rounded-xl">
+        <h2 className="text-3xl font-bold">{stats.not_started}</h2>
+        <p>Not Started</p>
       </div>
-      <div className="bg-white border text-center p-4 rounded-lg shadow-sm">
-        <p className="text-2xl sm:text-3xl font-bold text-blue-700">{totalProjects}</p>
-        <p className="text-xs sm:text-sm text-gray-700">Total Projects</p>
-        <p className="text-green-700 text-xs sm:text-sm font-medium mt-1">
-          KES {totalBudget.toLocaleString()}
+
+      <div className="bg-white border text-center p-4 rounded-xl shadow">
+        <h2 className="text-3xl font-bold text-blue-600">
+          {stats.total_projects}
+        </h2>
+        <p>Total Projects</p>
+        <p className="text-green-600 mt-2 font-semibold">
+          KES {parseFloat(stats.total_budget).toLocaleString()}
         </p>
       </div>
     </div>

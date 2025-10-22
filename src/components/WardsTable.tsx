@@ -6,8 +6,8 @@ interface WardsTableProps {
 
 const WardsTable = ({ projects }: WardsTableProps) => {
   const grouped = projects.reduce((acc, project) => {
-    if (!acc[project.ward]) acc[project.ward] = []
-    acc[project.ward].push(project)
+    if (!acc[project.ward_name]) acc[project.ward_name] = []
+    acc[project.ward_name].push(project)
     return acc
   }, {} as Record<string, Project[]>)
 

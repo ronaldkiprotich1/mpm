@@ -6,8 +6,8 @@ interface DepartmentsTableProps {
 
 const DepartmentsTable = ({ projects }: DepartmentsTableProps) => {
   const grouped = projects.reduce((acc, project) => {
-    if (!acc[project.department]) acc[project.department] = []
-    acc[project.department].push(project)
+    if (!acc[project.department_name]) acc[project.department_name] = []
+    acc[project.department_name].push(project)
     return acc
   }, {} as Record<string, Project[]>)
 

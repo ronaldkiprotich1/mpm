@@ -1,38 +1,31 @@
+import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { projectsData } from "../data/projectsData";
 import { Project } from "../types/Project";
 
-const WardDetails = () => {
+const WardDetails: React.FC = () => {
   const { wardId } = useParams<{ wardId: string }>();
 
-  // Convert URL slug (e.g. "abogeta-west") back to readable ward name
   const wardName = wardId
     ? wardId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
     : "";
 
-  // Filter projects that belong to this ward (case-insensitive)
-  const wardProjects = projectsData.filter(
-    (p: Project) =>
-      p.ward.toLowerCase().replace(/\s+/g, "-") === (wardId ?? "").toLowerCase()
+  const wardProjects = (projectsData as Project[]).filter(
+    (p) => p.ward_name.toLowerCase().replace(/\s+/g, "-") === (wardId ?? "").toLowerCase()
   );
 
-  // Summary statistics
   const total = wardProjects.length;
   const completed = wardProjects.filter((p) => p.status === "Completed").length;
   const ongoing = wardProjects.filter((p) => p.status === "Ongoing").length;
   const pending = wardProjects.filter((p) => p.status === "Pending").length;
-  const notStarted = wardProjects.filter(
-    (p) => p.status === "Not Started"
-  ).length;
+  const notStarted = wardProjects.filter((p) => p.status === "Not Started").length;
 
   return (
     <div className="container mx-auto px-6 py-10">
-      {/* ✅ Page Title */}
       <h2 className="text-3xl font-bold mb-6 text-green-700">
         Projects in {wardName}
       </h2>
 
-      {/* ✅ Summary Section */}
       {wardProjects.length > 0 && (
         <div className="bg-white rounded-lg shadow p-4 mb-6 flex flex-wrap gap-6 text-sm">
           <div className="text-green-700 font-medium">✅ Completed: {completed}</div>
@@ -43,16 +36,14 @@ const WardDetails = () => {
         </div>
       )}
 
-      {/* ❗ No projects message */}
       {wardProjects.length === 0 && (
         <p className="text-gray-500">
           No projects found for <strong>{wardName}</strong>.
         </p>
       )}
 
-      {/* ✅ Projects List */}
       <div className="space-y-4">
-        {wardProjects.map((project: Project) => (
+        {wardProjects.map((project) => (
           <div
             key={project.id}
             className="p-5 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
@@ -63,25 +54,21 @@ const WardDetails = () => {
                   {project.title}
                 </h3>
                 <p className="text-sm text-gray-600 mb-1">
-                  <span className="font-medium text-gray-700">Department:</span>{" "}
-                  {project.department}
+                  <strong>Department:</strong> {project.department_name}
                 </p>
                 <p className="text-sm text-gray-600 mb-1">
-                  <span className="font-medium text-gray-700">Financial Year:</span>{" "}
-                  {project.financialYear}
+                  <strong>Financial Year:</strong> {project.financial_year_name}
                 </p>
                 <p className="text-sm text-gray-600 mb-1">
-                  <span className="font-medium text-gray-700">Contractor:</span>{" "}
-                  {project.contractor}
+                  <strong>Contractor:</strong> {project.contractor_name ?? "—"}
                 </p>
                 <p className="text-sm text-gray-600 mb-1">
-                  <span className="font-medium text-gray-700">Budget:</span>{" "}
-                  Ksh {project.budget.toLocaleString()}
+                  <strong>Budget:</strong>{" "}
+                  Ksh {project.budget ? Number(project.budget).toLocaleString() : "—"}
                 </p>
                 <p className="text-sm text-gray-500 mt-2">{project.description}</p>
               </div>
 
-              {/* ✅ Status badge */}
               <span
                 className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   project.status === "Completed"
@@ -97,7 +84,6 @@ const WardDetails = () => {
               </span>
             </div>
 
-            {/* ✅ Details Link */}
             <div className="mt-3 text-right">
               <Link
                 to={`/project/${project.id}`}
@@ -110,7 +96,6 @@ const WardDetails = () => {
         ))}
       </div>
 
-      {/* ✅ Back link */}
       <div className="mt-8">
         <Link
           to="/per-ward"
