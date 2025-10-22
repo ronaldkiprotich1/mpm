@@ -7,6 +7,9 @@ interface ProjectsTableProps {
 
 const ProjectsTable = ({ projects }: ProjectsTableProps) => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [feedbackProject, setFeedbackProject] = useState<Project | null>(null);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackSent, setFeedbackSent] = useState(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
 
   // 🧠 Handle closing modal (outside click + ESC)
@@ -18,13 +21,15 @@ const ProjectsTable = ({ projects }: ProjectsTableProps) => {
           !modalRef.current.contains(event.target as Node)
         ) {
           setSelectedProject(null);
+          setFeedbackProject(null);
         }
       } else if (event instanceof KeyboardEvent && event.key === "Escape") {
         setSelectedProject(null);
+        setFeedbackProject(null);
       }
     };
 
-    if (selectedProject) {
+    if (selectedProject || feedbackProject) {
       document.addEventListener("mousedown", handleClose);
       document.addEventListener("keydown", handleClose);
     } else {
@@ -36,7 +41,19 @@ const ProjectsTable = ({ projects }: ProjectsTableProps) => {
       document.removeEventListener("mousedown", handleClose);
       document.removeEventListener("keydown", handleClose);
     };
-  }, [selectedProject]);
+  }, [selectedProject, feedbackProject]);
+
+  const handleSubmitFeedback = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (feedbackText.trim() === "") return;
+    console.log(`Feedback for ${feedbackProject?.title}: ${feedbackText}`);
+    setFeedbackSent(true);
+    setTimeout(() => {
+      setFeedbackSent(false);
+      setFeedbackText("");
+      setFeedbackProject(null);
+    }, 2000);
+  };
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-md mb-6 relative">
@@ -50,6 +67,7 @@ const ProjectsTable = ({ projects }: ProjectsTableProps) => {
             <th className="px-3 sm:px-4 py-2 text-left">Budget (KES)</th>
             <th className="px-3 sm:px-4 py-2 text-left">Status</th>
             <th className="px-3 sm:px-4 py-2 text-center">Description</th>
+            <th className="px-3 sm:px-4 py-2 text-center">Feedback</th>
           </tr>
         </thead>
 
@@ -84,17 +102,25 @@ const ProjectsTable = ({ projects }: ProjectsTableProps) => {
                   View
                 </button>
               </td>
+              <td className="px-3 sm:px-4 py-2 text-center">
+                <button
+                  onClick={() => setFeedbackProject(p)}
+                  className="text-green-700 hover:underline"
+                >
+                  Feedback
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/* Modal */}
+      {/* Description Modal */}
       {selectedProject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4 animate-fadeIn">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
           <div
             ref={modalRef}
-            className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative transition-all duration-200 ease-in-out"
+            className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative"
           >
             <button
               onClick={() => setSelectedProject(null)}
@@ -133,6 +159,49 @@ const ProjectsTable = ({ projects }: ProjectsTableProps) => {
             <p className="text-gray-700 text-sm leading-relaxed border-t pt-2">
               {selectedProject.description}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Modal */}
+      {feedbackProject && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+          <div
+            ref={modalRef}
+            className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative"
+          >
+            <button
+              onClick={() => setFeedbackProject(null)}
+              className="absolute top-2 right-3 text-gray-500 hover:text-black text-lg"
+            >
+              ×
+            </button>
+
+            <h2 className="text-lg font-bold text-green-700 mb-3">
+              Feedback for {feedbackProject.title}
+            </h2>
+
+            {feedbackSent ? (
+              <p className="text-green-600 font-medium text-center">
+                ✅ Feedback submitted successfully!
+              </p>
+            ) : (
+              <form onSubmit={handleSubmitFeedback}>
+                <textarea
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder="Write your feedback..."
+                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-green-500"
+                  rows={4}
+                ></textarea>
+                <button
+                  type="submit"
+                  className="mt-3 w-full bg-green-700 text-white py-2 rounded-md hover:bg-green-800"
+                >
+                  Submit Feedback
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
