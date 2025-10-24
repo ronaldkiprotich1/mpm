@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { axiosClient } from "../api/axiosClient";
+import { useLocation } from "react-router-dom"; // ✅ detect active tab from Navbar
 
 interface TabsMenuProps {
   onFilterChange: (filters: any) => void;
@@ -27,14 +28,26 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
 
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const location = useLocation();
 
-  // ✅ Detect outside click
+  // ✅ Detect navbar navigation and open the relevant dropdown
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveDropdown(location.state.activeTab);
+      // scroll into view
+      setTimeout(() => {
+        const el = document.getElementById("tabs-menu");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+      // reset state after use
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  // ✅ Detect outside click to close dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setActiveDropdown(null);
       }
     };
@@ -53,10 +66,10 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
       allResults = [...allResults, ...(data.results || [])];
       nextUrl = data.next;
     }
-
     return allResults;
   };
 
+  // ✅ Load dropdown data
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
@@ -67,7 +80,6 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
           axiosClient.get("http://192.168.100.149:8000/financial-years/"),
           fetchAllPages("http://192.168.100.149:8000/wards/"),
         ]);
-
         setDepartments(deptRes.data.results || []);
         setSubcounties(subRes.data.results || []);
         setYears(yearRes.data.results || []);
@@ -79,7 +91,6 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
         setLoading(false);
       }
     };
-
     fetchAll();
   }, []);
 
@@ -87,7 +98,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     const newFilters = { ...filters, [e.target.name]: e.target.value };
     setFilters(newFilters);
     onFilterChange(newFilters);
-    setActiveDropdown(null); // Close after selecting
+    setActiveDropdown(null); // ✅ close dropdown after selection
   };
 
   const resetFilters = () => {
@@ -109,7 +120,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     return <div className="text-center text-red-600 py-3">{error}</div>;
 
   return (
-    <div className="bg-white shadow-sm p-4 rounded-md relative" ref={dropdownRef}>
+    <div id="tabs-menu" className="bg-white shadow-sm p-4 rounded-md relative" ref={dropdownRef}>
       {/* --- Top Tabs --- */}
       <div className="flex flex-wrap justify-center items-center gap-6 mb-3 text-blue-600 font-medium">
         <button onClick={resetFilters} className="text-green-700 font-semibold hover:underline">
@@ -247,6 +258,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
         )}
       </div>
 
+      {/* ✅ Fade animation style */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(-6px); }

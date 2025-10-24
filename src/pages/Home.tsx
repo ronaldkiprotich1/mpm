@@ -13,7 +13,7 @@ const Home = () => {
 
   const BASE_URL = "http://192.168.100.149:8000/projects/";
 
-  // Fetch all projects on mount
+  // ✅ Fetch all projects on mount
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -31,7 +31,7 @@ const Home = () => {
     fetchProjects();
   }, []);
 
-  // Handle filters from TabsMenu
+  // ✅ Handle filters from TabsMenu
   const handleFilterChange = async (filters: {
     financial_year_name?: string;
     department_name?: string;
@@ -70,15 +70,22 @@ const Home = () => {
   if (error)
     return <p className="text-center mt-10 text-red-600">{error}</p>;
 
+  // ✅ Count procurement-stage projects (example logic)
+  const procurementCounts = {
+    underProcurement: projects.filter((p) => p.status === "under_procurement").length,
+    tenderEvaluation: projects.filter((p) => p.procurement_stage === "tender_evaluation").length,
+    awarded: projects.filter((p) => p.procurement_stage === "awarded").length,
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ✅ Dropdown filters */}
       <TabsMenu onFilterChange={handleFilterChange} />
 
       <div className="px-4 sm:px-8 py-6">
-        {/* ✅ Stats section */}
+        {/* ✅ Status section */}
         <StatusCards />
-        
+
         {/* ✅ Table section */}
         <ProjectsTable projects={filtered} />
       </div>
