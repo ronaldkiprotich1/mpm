@@ -14,7 +14,7 @@ export interface Project {
   actual_completion_date?: string;
   budget?: number | string | null;
   progress_percentage?: number;
-  procurement_stage?: string; // e.g. “Under Procurement”, “Tendering”, etc.
+  procurement_stage?: string; 
   created_at?: string;
   updated_at?: string;
 }

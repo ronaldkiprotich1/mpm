@@ -1,4 +1,4 @@
-// src/components/WardDropdown.tsx
+
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -23,7 +23,7 @@ const WardDropdown: React.FC = () => {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // 🧠 Close dropdown when clicking outside
+  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -42,7 +42,7 @@ const WardDropdown: React.FC = () => {
 
   return (
     <div ref={dropdownRef} className="relative inline-block text-left">
-      {/* Dropdown button */}
+      
       <button
         onClick={() => setOpen(!open)}
         className="bg-green-800 text-white font-semibold px-4 py-2 rounded-t-md w-56 text-left flex justify-between items-center hover:bg-green-700"
@@ -51,7 +51,7 @@ const WardDropdown: React.FC = () => {
         <span className="ml-2 text-sm">▼</span>
       </button>
 
-      {/* Animated dropdown */}
+     
       <AnimatePresence>
         {open && (
           <motion.ul

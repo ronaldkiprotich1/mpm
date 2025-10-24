@@ -19,7 +19,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ projects, onFilterChange }) => {
     status: "",
   });
 
-  // ✅ Derive dropdown options dynamically from data
+  
   const years = Array.from(
     new Set(projects.map((p) => p.financial_year_name).filter(Boolean))
   ).sort();
@@ -33,14 +33,14 @@ const FilterBar: React.FC<FilterBarProps> = ({ projects, onFilterChange }) => {
     new Set(projects.map((p) => p.status).filter(Boolean))
   ).sort();
 
-  // ✅ Handle dropdown selection
+  
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFilters = { ...filters, [e.target.name]: e.target.value };
     setFilters(newFilters);
     onFilterChange(newFilters);
   };
 
-  // ✅ Notify parent when filters reset (if needed)
+  
   useEffect(() => {
     onFilterChange(filters);
   }, [filters, onFilterChange]);
@@ -69,7 +69,7 @@ const FilterBar: React.FC<FilterBarProps> = ({ projects, onFilterChange }) => {
         </select>
       ))}
 
-      {/* 🔄 Reset Button */}
+      
       <button
         onClick={() =>
           setFilters({ year: "", department: "", ward: "", status: "" })

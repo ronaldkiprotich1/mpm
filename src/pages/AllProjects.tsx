@@ -99,7 +99,6 @@ const AllProjects: React.FC = () => {
         </table>
       </div>
 
-      {/* ✅ Project Details Modal */}
       {selectedProject && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-[90%] md:w-[60%] shadow-2xl relative">

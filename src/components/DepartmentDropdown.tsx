@@ -1,4 +1,4 @@
-// src/components/DepartmentDropdown.tsx
+
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -39,7 +39,7 @@ const DepartmentDropdown: React.FC = () => {
 
   return (
     <div ref={dropdownRef} className="relative inline-block text-left">
-      {/* Dropdown button */}
+      
       <button
         onClick={() => setOpen(!open)}
         className="bg-green-800 text-white font-semibold px-4 py-2 rounded-t-md w-72 text-left flex justify-between items-center hover:bg-green-700"
@@ -48,7 +48,7 @@ const DepartmentDropdown: React.FC = () => {
         <span className="ml-2 text-sm">▼</span>
       </button>
 
-      {/* Animated dropdown */}
+      
       <AnimatePresence>
         {open && (
           <motion.ul

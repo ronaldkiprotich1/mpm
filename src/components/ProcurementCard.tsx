@@ -1,0 +1,17 @@
+import React from "react";
+
+interface ProcurementCardProps {
+  stage: string;
+  count: number;
+}
+
+const ProcurementCard: React.FC<ProcurementCardProps> = ({ stage, count }) => {
+  return (
+    <div className="bg-purple-700 text-white px-6 py-4 rounded-lg shadow-md text-center w-56 hover:scale-105 transform transition duration-300">
+      <p className="text-3xl font-bold">{count}</p>
+      <p className="text-sm mt-1 font-medium">{stage}</p>
+    </div>
+  );
+};
+
+export default ProcurementCard;

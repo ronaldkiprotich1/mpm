@@ -4,21 +4,23 @@ import TabsMenu from "../components/TabsMenu";
 import StatusCards from "../components/StatusCards";
 import ProjectsTable from "../components/ProjectsTable";
 import { Project } from "../types/Project";
+import FeedbackModal from "../components/FeedbackModal";
 
 const Home = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filtered, setFiltered] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openFeedback, setOpenFeedback] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
   const BASE_URL = "http://192.168.100.149:8000/projects/";
 
-  // ✅ Fetch all projects on mount
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await axios.get(BASE_URL);
-        const data = response.data.results || response.data;
+        const res = await axios.get(BASE_URL);
+        const data = res.data.results || res.data;
         setProjects(data);
         setFiltered(data);
       } catch (err) {
@@ -31,7 +33,7 @@ const Home = () => {
     fetchProjects();
   }, []);
 
-  // ✅ Handle filters from TabsMenu
+ 
   const handleFilterChange = async (filters: {
     financial_year_name?: string;
     department_name?: string;
@@ -65,30 +67,34 @@ const Home = () => {
     }
   };
 
-  if (loading)
-    return <p className="text-center mt-10 text-gray-600">Loading...</p>;
-  if (error)
-    return <p className="text-center mt-10 text-red-600">{error}</p>;
+  useEffect(() => {
+    const handleOpenFeedback = (event: any) => {
+      setSelectedProject(event.detail || null);
+      setOpenFeedback(true);
+    };
 
-  // ✅ Count procurement-stage projects (example logic)
-  const procurementCounts = {
-    underProcurement: projects.filter((p) => p.status === "under_procurement").length,
-    tenderEvaluation: projects.filter((p) => p.procurement_stage === "tender_evaluation").length,
-    awarded: projects.filter((p) => p.procurement_stage === "awarded").length,
-  };
+    window.addEventListener("openFeedback", handleOpenFeedback);
+    return () => window.removeEventListener("openFeedback", handleOpenFeedback);
+  }, []);
+
+  if (loading) return <p className="text-center mt-10 text-gray-600">Loading...</p>;
+  if (error) return <p className="text-center mt-10 text-red-600">{error}</p>;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ✅ Dropdown filters */}
+    <div className="min-h-screen bg-gray-50 relative">
       <TabsMenu onFilterChange={handleFilterChange} />
 
       <div className="px-4 sm:px-8 py-6">
-        {/* ✅ Status section */}
         <StatusCards />
-
-        {/* ✅ Table section */}
         <ProjectsTable projects={filtered} />
       </div>
+
+  
+      <FeedbackModal
+        isOpen={openFeedback}
+        onClose={() => setOpenFeedback(false)}
+        projectTitle={selectedProject}
+      />
     </div>
   );
 };

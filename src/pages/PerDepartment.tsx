@@ -19,7 +19,7 @@ const PerDepartment: React.FC = () => {
         </h2>
 
         {departments.map((dept) => {
-          // Filter projects by department
+          
           const departmentProjects = projectsData.filter(
             (p: Project) => p.department_name === dept
           );

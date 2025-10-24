@@ -1,4 +1,4 @@
-// src/components/BudgetByYearChart.tsx
+
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Project } from "../types/Project";
 

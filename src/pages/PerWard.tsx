@@ -4,7 +4,7 @@ import { projectsData } from "../data/projectsData";
 import { Project } from "../types/Project";
 
 const PerWard: React.FC = () => {
-  // 🧠 Get all unique ward names
+ 
   const wards = Array.from(
     new Set(projectsData.map((p: Project) => p.ward_name))
   ).sort();

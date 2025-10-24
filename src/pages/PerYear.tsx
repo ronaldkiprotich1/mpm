@@ -15,7 +15,7 @@ const PerYear: React.FC = () => {
     totalBudget: 0,
   });
 
-  // ✅ Fetch all years and all projects by default
+  
   useEffect(() => {
     const fetchAllProjects = async () => {
       try {
@@ -45,29 +45,29 @@ const PerYear: React.FC = () => {
     fetchAllProjects();
   }, []);
 
-  // ✅ Fetch projects when year changes
+ 
   useEffect(() => {
     if (!selectedYear) return;
 
     const fetchByYear = async () => {
       try {
         setLoading(true);
-        setProjects([]); // Clear old projects before fetching
+        setProjects([]); 
         
         const res = await fetch(
           `${API_BASE_URL}/projects/by_financial_year/?year=${selectedYear}`
         );
         const data = await res.json();
 
-        console.log("API Response for year:", selectedYear, data); // Debug log
+        console.log("API Response for year:", selectedYear, data); 
 
         if (Array.isArray(data) && data.length > 0) {
           const yearData = data[0];
           const fetchedProjects = yearData.projects || [];
           
-          console.log("Fetched projects:", fetchedProjects); // Debug log
+          console.log("Fetched projects:", fetchedProjects); 
           
-          // ✅ Additional client-side filtering to ensure only selected year projects
+          
           const filteredProjects = fetchedProjects.filter(
             (p: Project) => p.financial_year_name === selectedYear
           );
@@ -97,7 +97,7 @@ const PerYear: React.FC = () => {
     fetchByYear();
   }, [selectedYear]);
 
-  // ✅ Count projects by status using correct status values
+ 
   const completed = projects.filter((p) => p.status === "completed").length;
   const ongoing = projects.filter((p) => p.status === "in_progress" || p.status === "ongoing").length;
   const pending = projects.filter((p) => p.status === "pending").length;
@@ -112,7 +112,7 @@ const PerYear: React.FC = () => {
           Projects Per Financial Year
         </h2>
 
-        {/* ✅ Year Dropdown */}
+       
         <div className="flex justify-center mb-6">
           <select
             className="border border-gray-400 rounded-lg px-4 py-2 w-64 text-center font-medium shadow-sm focus:ring-2 focus:ring-green-600"
@@ -121,7 +121,7 @@ const PerYear: React.FC = () => {
               const year = e.target.value;
               setSelectedYear(year);
 
-              // Reset to all years if cleared
+             
               if (!year) {
                 setLoading(true);
                 fetch(`${API_BASE_URL}/projects/by_financial_year/`)
@@ -150,7 +150,7 @@ const PerYear: React.FC = () => {
           </select>
         </div>
 
-        {/* ✅ Status Cards */}
+       
         {!loading && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 text-center">
             <div className="bg-green-600 text-white py-4 rounded-lg shadow">
@@ -179,7 +179,7 @@ const PerYear: React.FC = () => {
           </div>
         )}
 
-        {/* ✅ Table */}
+        
         <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200">
           <table className="min-w-full text-sm text-left border-collapse">
             <thead className="bg-green-900 text-white">
