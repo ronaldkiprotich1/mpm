@@ -12,10 +12,11 @@ interface Stats {
 
 const StatusCards = () => {
   const [stats, setStats] = useState<Stats | null>(null);
+  const BASE_URL = "http://192.168.100.149:8000/projects/statistics/";
 
   useEffect(() => {
     axios
-      .get("http://192.168.100.149:8000/projects/statistics/")
+      .get(BASE_URL)
       .then((res) => setStats(res.data))
       .catch((err) => console.error("Error fetching statistics:", err));
   }, []);
@@ -31,22 +32,18 @@ const StatusCards = () => {
         <h2 className="text-3xl font-bold">{stats.completed}</h2>
         <p>Completed</p>
       </div>
-
       <div className="bg-blue-600 text-white text-center p-4 rounded-xl">
         <h2 className="text-3xl font-bold">{stats.ongoing}</h2>
         <p>Ongoing</p>
       </div>
-
       <div className="bg-yellow-500 text-white text-center p-4 rounded-xl">
         <h2 className="text-3xl font-bold">{stats.pending}</h2>
         <p>Pending</p>
       </div>
-
       <div className="bg-gray-600 text-white text-center p-4 rounded-xl">
         <h2 className="text-3xl font-bold">{stats.not_started}</h2>
         <p>Not Started</p>
       </div>
-
       <div className="bg-white border text-center p-4 rounded-xl shadow">
         <h2 className="text-3xl font-bold text-blue-600">
           {stats.total_projects}

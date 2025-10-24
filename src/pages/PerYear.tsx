@@ -59,24 +59,29 @@ const PerYear: React.FC = () => {
         );
         const data = await res.json();
 
+        console.log("API Response for year:", selectedYear, data); // Debug log
+
         if (Array.isArray(data) && data.length > 0) {
-          // ✅ Find the correct year data (backend returns multiple years)
-          const yearData = data.find(
-            (item: any) => item.financial_year.year === selectedYear
+          const yearData = data[0];
+          const fetchedProjects = yearData.projects || [];
+          
+          console.log("Fetched projects:", fetchedProjects); // Debug log
+          
+          // ✅ Additional client-side filtering to ensure only selected year projects
+          const filteredProjects = fetchedProjects.filter(
+            (p: Project) => p.financial_year_name === selectedYear
           );
           
-          if (yearData) {
-            const fetchedProjects = yearData.projects || [];
-            
-            setProjects(fetchedProjects);
-            setSummary({
-              count: yearData.project_count || 0,
-              totalBudget: yearData.total_budget || 0,
-            });
-          } else {
-            setProjects([]);
-            setSummary({ count: 0, totalBudget: 0 });
-          }
+          console.log("Filtered projects:", filteredProjects); // Debug log
+          
+          setProjects(filteredProjects);
+          setSummary({
+            count: filteredProjects.length,
+            totalBudget: filteredProjects.reduce(
+              (sum: number, p: Project) => sum + Number(p.budget || 0),
+              0
+            ),
+          });
         } else {
           setProjects([]);
           setSummary({ count: 0, totalBudget: 0 });

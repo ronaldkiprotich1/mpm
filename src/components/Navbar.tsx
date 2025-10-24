@@ -20,10 +20,10 @@ const Navbar = () => {
         {/* Links */}
         <div className="flex flex-wrap gap-4 text-sm sm:text-base justify-center md:justify-end">
           <Link to="/" className="hover:text-blue-300">Home</Link>
-          <Link to="/per-year" className="hover:text-blue-300">Per Financial Year</Link>
-          <Link to="/per-status" className="hover:text-blue-300">Per Status</Link>
-          <Link to="/per-department" className="hover:text-blue-300">Per Department</Link>
-          <Link to="/per-ward" className="hover:text-blue-300">Per Ward</Link>
+          <Link to="/per-year" className="hover:text-blue-300">Financial Year</Link>
+          <Link to="/per-status" className="hover:text-blue-300">Status</Link>
+          <Link to="/per-department" className="hover:text-blue-300">Department</Link>
+          <Link to="/per-ward" className="hover:text-blue-300">Ward</Link>
         </div>
       </div>
     </nav>

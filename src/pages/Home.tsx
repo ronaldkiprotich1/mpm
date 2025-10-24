@@ -13,6 +13,7 @@ const Home = () => {
 
   const BASE_URL = "http://192.168.100.149:8000/projects/";
 
+  // Fetch all projects on mount
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -30,30 +31,33 @@ const Home = () => {
     fetchProjects();
   }, []);
 
+  // Handle filters from TabsMenu
   const handleFilterChange = async (filters: {
-    year: string;
-    department: string;
-    ward: string;
-    status: string;
+    financial_year_name?: string;
+    department_name?: string;
+    ward_name?: string;
+    subcounty_name?: string;
+    status?: string;
   }) => {
     try {
       let url = BASE_URL;
+      const params = [];
 
-      if (filters.department)
-        url = `${BASE_URL}by_department/?department=${filters.department}`;
-      else if (filters.year)
-        url = `${BASE_URL}by_financial_year/?year=${filters.year}`;
-      else if (filters.status)
-        url = `${BASE_URL}by_status/?status=${filters.status}`;
-      else if (filters.ward)
-        url = `${BASE_URL}by_ward/?ward=${filters.ward}`;
+      if (filters.department_name)
+        params.push(`department_name=${encodeURIComponent(filters.department_name)}`);
+      if (filters.ward_name)
+        params.push(`ward_name=${encodeURIComponent(filters.ward_name)}`);
+      if (filters.subcounty_name)
+        params.push(`subcounty_name=${encodeURIComponent(filters.subcounty_name)}`);
+      if (filters.financial_year_name)
+        params.push(`financial_year_name=${encodeURIComponent(filters.financial_year_name)}`);
+      if (filters.status)
+        params.push(`status=${encodeURIComponent(filters.status)}`);
+
+      if (params.length > 0) url += `?${params.join("&")}`;
 
       const response = await axios.get(url);
-      const data =
-        response.data.results ||
-        response.data.projects ||
-        response.data[0]?.projects ||
-        response.data;
+      const data = response.data.results || response.data;
       setFiltered(data);
     } catch (err) {
       console.error("Filter fetch error:", err);
@@ -68,9 +72,14 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* ✅ Dropdown filters */}
       <TabsMenu onFilterChange={handleFilterChange} />
+
       <div className="px-4 sm:px-8 py-6">
+        {/* ✅ Stats section */}
         <StatusCards />
+        
+        {/* ✅ Table section */}
         <ProjectsTable projects={filtered} />
       </div>
     </div>

@@ -1,160 +1,261 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { axiosClient } from "../api/axiosClient";
 
 interface TabsMenuProps {
-  onFilterChange: (filters: {
-    year: string;
-    department: string;
-    ward: string;
-    status: string;
-  }) => void;
+  onFilterChange: (filters: any) => void;
 }
 
+interface Department { id: number; name: string; }
+interface Ward { id: number; name: string; }
+interface Subcounty { id: number; name: string; }
+interface FinancialYear { id: number; year: string; }
+
 const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
-  const [activeTab, setActiveTab] = useState("all");
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+  const [subcounties, setSubcounties] = useState<Subcounty[]>([]);
+  const [years, setYears] = useState<FinancialYear[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
-    year: "",
-    department: "",
-    ward: "",
+    department_name: "",
+    ward_name: "",
+    subcounty_name: "",
+    financial_year_name: "",
     status: "",
   });
 
-  const handleChange = (key: string, value: string) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-    onFilterChange(newFilters);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // ✅ Detect outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setActiveDropdown(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ✅ Pagination-safe fetch
+  const fetchAllPages = async (url: string): Promise<any[]> => {
+    let allResults: any[] = [];
+    let nextUrl: string | null = url;
+
+    while (nextUrl) {
+      const res: any = await axiosClient.get(nextUrl);
+      const data: any = res.data;
+      allResults = [...allResults, ...(data.results || [])];
+      nextUrl = data.next;
+    }
+
+    return allResults;
   };
 
-  const tabs = [
-    { key: "all", label: "All Projects" },
-    { key: "year", label: "Per Financial Year" },
-    { key: "status", label: "Per Status" },
-    { key: "department", label: "Per Department" },
-    { key: "ward", label: "Per Ward" },
-  ];
+  useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const [deptRes, subRes, yearRes, allWards] = await Promise.all([
+          axiosClient.get("http://192.168.100.149:8000/departments/"),
+          axiosClient.get("http://192.168.100.149:8000/subcounties/"),
+          axiosClient.get("http://192.168.100.149:8000/financial-years/"),
+          fetchAllPages("http://192.168.100.149:8000/wards/"),
+        ]);
+
+        setDepartments(deptRes.data.results || []);
+        setSubcounties(subRes.data.results || []);
+        setYears(yearRes.data.results || []);
+        setWards(allWards);
+      } catch (err) {
+        console.error("Dropdown fetch error:", err);
+        setError("⚠️ Failed to load dropdown data. Check backend connection.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newFilters = { ...filters, [e.target.name]: e.target.value };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+    setActiveDropdown(null); // Close after selecting
+  };
+
+  const resetFilters = () => {
+    const cleared = {
+      department_name: "",
+      ward_name: "",
+      subcounty_name: "",
+      financial_year_name: "",
+      status: "",
+    };
+    setFilters(cleared);
+    onFilterChange(cleared);
+    setActiveDropdown(null);
+  };
+
+  if (loading)
+    return <div className="text-center text-gray-600 py-3">Loading filters...</div>;
+  if (error)
+    return <div className="text-center text-red-600 py-3">{error}</div>;
 
   return (
-    <div className="bg-white shadow-sm border-b">
-      <div className="flex flex-wrap items-center justify-center gap-2 px-4 py-3 text-sm sm:text-base">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => {
-              setActiveTab(tab.key);
-              if (tab.key === "all") onFilterChange({ year: "", department: "", ward: "", status: "" });
-            }}
-            className={`px-4 py-2 rounded-md transition-colors ${
-              activeTab === tab.key
-                ? "bg-green-700 text-white font-semibold"
-                : "text-blue-600 hover:text-green-700"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+    <div className="bg-white shadow-sm p-4 rounded-md relative" ref={dropdownRef}>
+      {/* --- Top Tabs --- */}
+      <div className="flex flex-wrap justify-center items-center gap-6 mb-3 text-blue-600 font-medium">
+        <button onClick={resetFilters} className="text-green-700 font-semibold hover:underline">
+          All Projects
+        </button>
+
+        <button
+          onClick={() => setActiveDropdown("financial")}
+          className={`px-4 py-1 rounded-full transition ${
+            activeDropdown === "financial" ? "bg-green-700 text-white" : "hover:text-green-700"
+          }`}
+        >
+          Per Financial Year
+        </button>
+
+        <button
+          onClick={() => setActiveDropdown("status")}
+          className={`transition hover:text-green-700 ${
+            activeDropdown === "status" ? "font-semibold" : ""
+          }`}
+        >
+          Per Status
+        </button>
+
+        <button
+          onClick={() => setActiveDropdown("department")}
+          className={`transition hover:text-green-700 ${
+            activeDropdown === "department" ? "font-semibold" : ""
+          }`}
+        >
+          Per Department
+        </button>
+
+        <button
+          onClick={() => setActiveDropdown("subcounty")}
+          className={`transition hover:text-green-700 ${
+            activeDropdown === "subcounty" ? "font-semibold" : ""
+          }`}
+        >
+          Per Subcounty
+        </button>
+
+        <button
+          onClick={() => setActiveDropdown("ward")}
+          className={`transition hover:text-green-700 ${
+            activeDropdown === "ward" ? "font-semibold" : ""
+          }`}
+        >
+          Per Ward
+        </button>
       </div>
 
-      {activeTab !== "all" && (
-        <div className="flex flex-wrap justify-center gap-4 bg-gray-50 py-3">
-          {activeTab === "year" && (
+      {/* --- Dropdowns (fade-in) --- */}
+      <div className="flex justify-center">
+        {activeDropdown === "financial" && (
+          <div className="animate-fadeIn absolute mt-1">
             <select
-              onChange={(e) => handleChange("year", e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2"
+              name="financial_year_name"
+              onChange={handleChange}
+              value={filters.financial_year_name}
+              className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-md"
             >
               <option value="">Select Financial Year</option>
-              <option value="2022/2023">2022/2023</option>
-              <option value="2023/2024">2023/2024</option>
-              <option value="2024/2025">2024/2025</option>
-              <option value="2025/2026">2025/2026</option>
+              {years.map((y) => (
+                <option key={y.id} value={y.year}>{y.year}</option>
+              ))}
             </select>
-          )}
+          </div>
+        )}
 
-          {activeTab === "department" && (
+        {activeDropdown === "status" && (
+          <div className="animate-fadeIn absolute mt-1">
             <select
-              onChange={(e) => handleChange("department", e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2"
-            >
-              <option value="">Select Department</option>
-              <option value="Health">Health</option>
-              <option value="Education">Education</option>
-              <option value="Infrastructure">Infrastructure</option>
-              <option value="Trade & Cooperatives">Trade & Cooperatives</option>
-              <option value="Agriculture & Livestock">Agriculture & Livestock</option>
-              <option value="Water & Sanitation">Water & Sanitation</option>
-              <option value="Environment & Urban Planning">Environment & Urban Planning</option>
-              <option value="ICT & Youth Affairs">ICT & Youth Affairs</option>
-              <option value="Gender & Social Services">Gender & Social Services</option>
-            </select>
-          )}
-
-          {activeTab === "status" && (
-            <select
-              onChange={(e) => handleChange("status", e.target.value.toLowerCase())}
-              className="border border-gray-300 rounded-md px-3 py-2"
+              name="status"
+              onChange={handleChange}
+              value={filters.status}
+              className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-md"
             >
               <option value="">Select Status</option>
               <option value="completed">Completed</option>
               <option value="ongoing">Ongoing</option>
               <option value="pending">Pending</option>
-              <option value="not started">Not Started</option>
+              <option value="not_started">Not Started</option>
+              <option value="under_procurement">Under Procurement</option>
             </select>
-          )}
+          </div>
+        )}
 
-          {activeTab === "ward" && (
+        {activeDropdown === "department" && (
+          <div className="animate-fadeIn absolute mt-1">
             <select
-              onChange={(e) => handleChange("ward", e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2"
+              name="department_name"
+              onChange={handleChange}
+              value={filters.department_name}
+              className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-md"
+            >
+              <option value="">Select Department</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.name}>{dept.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {activeDropdown === "subcounty" && (
+          <div className="animate-fadeIn absolute mt-1">
+            <select
+              name="subcounty_name"
+              onChange={handleChange}
+              value={filters.subcounty_name}
+              className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-md"
+            >
+              <option value="">Select Subcounty</option>
+              {subcounties.map((s) => (
+                <option key={s.id} value={s.name}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {activeDropdown === "ward" && (
+          <div className="animate-fadeIn absolute mt-1">
+            <select
+              name="ward_name"
+              onChange={handleChange}
+              value={filters.ward_name}
+              className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-md"
             >
               <option value="">Select Ward</option>
-              <option value="Igoji East">Igoji East</option>
-              <option value="Igoji West">Igoji West</option>
-              <option value="Abogeta West">Abogeta West</option>
-              <option value="Abothuguchi Central">Abothuguchi Central</option>
-              <option value="Abothuguchi West">Abothuguchi West</option>
-              <option value="Akachiu">Akachiu</option>
-              <option value="Amwathi">Amwathi</option>
-              <option value="Antubetwe Kiongo">Antubetwe Kiongo</option>
-              <option value="Antuambui">Antuambui</option>
-              <option value="Athiru Gaiti">Athiru Gaiti</option>
-              <option value="Athiru Ruujine">Athiru Ruujine</option>
-              <option value="Gaitu">Gaitu</option>
-              <option value="Gikurune">Gikurune</option>
-              <option value="Githongo">Githongo</option>
-              <option value="Giaki">Giaki</option>
-              <option value="Kibirichia">Kibirichia</option>
-              <option value="Kiguchwa">Kiguchwa</option>
-              <option value="Kiengu">Kiengu</option>
-              <option value="Kiigene">Kiigene</option>
-              <option value="Kithangari">Kithangari</option>
-              <option value="Kithirune">Kithirune</option>
-              <option value="Kithoka">Kithoka</option>
-              <option value="Kongoacheke">Kongoacheke</option>
-              <option value="Maua">Maua</option>
-              <option value="Mikinduri">Mikinduri</option>
-              <option value="Mituntu">Mituntu</option>
-              <option value="Muringene">Muringene</option>
-              <option value="Mwanganthia">Mwanganthia</option>
-              <option value="Nkuene">Nkuene</option>
-              <option value="Nkomo">Nkomo</option>
-              <option value="Ntima East">Ntima East</option>
-              <option value="Ntima West">Ntima West</option>
-              <option value="Ntuene">Ntuene</option>
-              <option value="Ntonyiri">Ntonyiri</option>
-              <option value="Ruiri Rwarera">Ruiri Rwarera</option>
-              <option value="Thangatha">Thangatha</option>
-              <option value="Timau">Timau</option>
-              <option value="Tigania East">Tigania East</option>
-              <option value="Tigania West">Tigania West</option>
-              <option value="Kanyakine">Kanyakine</option>
-              <option value="Kiirua Naari">Kiirua Naari</option>
-              <option value="Mwanganthia">Mwanganthia</option>
-              <option value="Muthara">Muthara</option>
-              <option value="Ntunene">Ntunene</option>
-              <option value="Njia">Njia</option>
-              <option value="Gatimbi">Gatimbi</option>
+              {wards.map((w) => (
+                <option key={w.id} value={w.name}>{w.name}</option>
+              ))}
             </select>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.25s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };

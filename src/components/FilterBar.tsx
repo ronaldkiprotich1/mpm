@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Project } from "../types/Project";
 
 interface FilterBarProps {
-  projects: Project[]; // ✅ Accept projects dynamically (from API or static)
+  projects: Project[]; 
   onFilterChange: (filters: {
     year: string;
     department: string;

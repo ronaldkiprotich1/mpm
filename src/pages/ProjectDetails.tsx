@@ -5,9 +5,7 @@ import { Project } from "../types/Project";
 
 const ProjectDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const project = (projectsData as Project[]).find(
-    (p) => p.id.toString() === id
-  );
+  const project = (projectsData as Project[]).find((p) => p.id.toString() === id);
 
   if (!project)
     return (
@@ -19,28 +17,42 @@ const ProjectDetails: React.FC = () => {
       </div>
     );
 
+  const formatDate = (date?: string | null) =>
+    date
+      ? new Date(date).toLocaleDateString("en-KE", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
+      : "—";
+
   return (
-    <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-blue-700 mb-2">{project.title}</h2>
-      <p className="text-gray-700 mb-4">{project.description}</p>
+    <div className="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-green-700 mb-3">{project.title}</h2>
 
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        <div><strong>Department:</strong> {project.department_name}</div>
-        <div><strong>Ward:</strong> {project.ward_name}</div>
-        <div><strong>Status:</strong> {project.status}</div>
-        <div><strong>Financial Year:</strong> {project.financial_year_name}</div>
-        <div>
-          <strong>Budget:</strong>{" "}
-          KES {project.budget ? Number(project.budget).toLocaleString() : "—"}
-        </div>
-        <div><strong>Contractor:</strong> {project.contractor_name ?? "—"}</div>
+      <div className="text-gray-700 text-sm space-y-1">
+        <p>
+          <strong>Start Date:</strong> {formatDate(project.start_date)}
+        </p>
+        <p>
+          <strong>Expected Completion:</strong>{" "}
+          {formatDate(project.expected_completion_date)}
+        </p>
+        <p>
+          <strong>Actual Completion:</strong>{" "}
+          {formatDate(project.actual_completion_date)}
+        </p>
+        <p>
+          <strong>Description:</strong> {project.description || "—"}
+        </p>
       </div>
 
-      <div className="mt-6">
-        <Link to="/" className="text-blue-600 hover:underline">
-          ← Back to Projects
-        </Link>
-      </div>
+      <Link
+        to="/"
+        className="block mt-5 text-blue-600 font-medium hover:underline"
+      >
+        ← Back to Projects
+      </Link>
     </div>
   );
 };
