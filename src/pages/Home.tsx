@@ -14,7 +14,7 @@ const Home = () => {
   const [openFeedback, setOpenFeedback] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
-  const BASE_URL = "http://192.168.100.149:8000/projects/";
+  const BASE_URL = "http://10.10.212.245:8000/projects/";
 
   useEffect(() => {
     const fetchProjects = async () => {
