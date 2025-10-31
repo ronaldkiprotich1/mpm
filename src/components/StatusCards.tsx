@@ -14,7 +14,7 @@ interface Stats {
 
 const StatusCards = () => {
   const [stats, setStats] = useState<Stats | null>(null);
-  const BASE_URL = "http://10.10.212.245:8000/projects/statistics/";
+  const BASE_URL = "http://192.168.100.32:8000/projects/statistics/";
 
   useEffect(() => {
     axios

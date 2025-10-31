@@ -59,10 +59,10 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
       setLoading(true);
       try {
         const [deptRes, subRes, yearRes, allWards] = await Promise.all([
-          axiosClient.get("http://10.10.212.245:8000/departments/"),
-          axiosClient.get("http://10.10.212.245:8000/subcounties/"),
-          axiosClient.get("http://10.10.212.245:8000/financial-years/"),
-          fetchAllPages("http://10.10.212.245:8000/wards/"),
+          axiosClient.get("http://192.168.100.32:8000/departments/"),
+          axiosClient.get("http://192.168.100.32:8000/subcounties/"),
+          axiosClient.get("http://192.168.100.32:8000/financial-years/"),
+          fetchAllPages("http://192.168.100.32:8000/wards/"),
         ]);
         setDepartments(deptRes.data.results || []);
         setSubcounties(subRes.data.results || []);
