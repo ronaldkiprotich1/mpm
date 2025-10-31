@@ -29,7 +29,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
 
-  
+  // Scroll to dropdown when coming from another page
   useEffect(() => {
     if (location.state?.activeTab) {
       setActiveDropdown(location.state.activeTab);
@@ -41,7 +41,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     }
   }, [location.state]);
 
-  
+  // Helper: fetch paginated data (wards)
   const fetchAllPages = async (url: string): Promise<any[]> => {
     let allResults: any[] = [];
     let nextUrl: string | null = url;
@@ -54,6 +54,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     return allResults;
   };
 
+  // Fetch dropdown data
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
@@ -78,6 +79,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     fetchAll();
   }, []);
 
+  // Handle dropdown change
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFilters = { ...filters, [e.target.name]: e.target.value };
     setFilters(newFilters);
@@ -104,16 +106,25 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     return <div className="text-center text-red-600 py-3">{error}</div>;
 
   return (
-    <div id="tabs-menu" ref={dropdownRef} className="bg-white shadow-sm p-4 rounded-md relative">
-     
+    <div
+      id="tabs-menu"
+      ref={dropdownRef}
+      className="bg-white shadow-sm p-4 rounded-md relative z-50 overflow-visible"
+    >
+      {/* Top Navigation Tabs */}
       <div className="flex flex-wrap justify-center items-center gap-6 mb-3 text-blue-600 font-medium">
-        <button onClick={resetFilters} className="text-green-700 font-semibold hover:underline">
+        <button
+          onClick={resetFilters}
+          className="text-green-700 font-semibold hover:underline"
+        >
           All Projects
         </button>
         <button
           onClick={() => setActiveDropdown("financial")}
           className={`px-4 py-1 rounded-full transition ${
-            activeDropdown === "financial" ? "bg-green-700 text-white" : "hover:text-green-700"
+            activeDropdown === "financial"
+              ? "bg-green-700 text-white"
+              : "hover:text-green-700"
           }`}
         >
           Per Financial Year
@@ -152,14 +163,14 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
         </button>
       </div>
 
-     
-      <div className="flex justify-center">
+      {/* Dropdown Filters */}
+      <div className="flex justify-center relative z-50">
         {activeDropdown === "financial" && (
           <select
             name="financial_year_name"
             onChange={handleChange}
             value={filters.financial_year_name}
-            className="border border-gray-400 rounded-md px-3 py-2 animate-fadeIn"
+            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg relative z-50 animate-fadeIn"
           >
             <option value="">Select Financial Year</option>
             {years.map((y) => (
@@ -175,7 +186,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
             name="status"
             onChange={handleChange}
             value={filters.status}
-            className="border border-gray-400 rounded-md px-3 py-2 animate-fadeIn"
+            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg relative z-50 animate-fadeIn"
           >
             <option value="">Select Status</option>
             <option value="completed">Completed</option>
@@ -191,7 +202,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
             name="department_name"
             onChange={handleChange}
             value={filters.department_name}
-            className="border border-gray-400 rounded-md px-3 py-2 animate-fadeIn"
+            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg relative z-50 animate-fadeIn"
           >
             <option value="">Select Department</option>
             {departments.map((dept) => (
@@ -207,7 +218,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
             name="subcounty_name"
             onChange={handleChange}
             value={filters.subcounty_name}
-            className="border border-gray-400 rounded-md px-3 py-2 animate-fadeIn"
+            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg relative z-50 animate-fadeIn"
           >
             <option value="">Select Subcounty</option>
             {subcounties.map((s) => (
@@ -223,7 +234,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
             name="ward_name"
             onChange={handleChange}
             value={filters.ward_name}
-            className="border border-gray-400 rounded-md px-3 py-2 animate-fadeIn"
+            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg relative z-50 animate-fadeIn"
           >
             <option value="">Select Ward</option>
             {wards.map((w) => (
@@ -235,6 +246,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
         )}
       </div>
 
+      {/* Simple fade-in animation */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(-6px); }
