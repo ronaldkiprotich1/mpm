@@ -3,18 +3,17 @@ import axios from "axios";
 import { motion } from "framer-motion";
 
 interface Stats {
-  total_projects: number;
   completed: number;
   ongoing: number;
   pending: number;
   not_started: number;
   under_procurement: number;
-  total_budget: string;
+  stalled: number; // ✅ NEW
 }
 
 const StatusCards = () => {
   const [stats, setStats] = useState<Stats | null>(null);
-  const BASE_URL = "http://192.168.100.32:8000/projects/statistics/";
+  const BASE_URL = "http://192.168.100.40:8000/projects/statistics/";
 
   useEffect(() => {
     axios
@@ -24,7 +23,18 @@ const StatusCards = () => {
   }, []);
 
   if (!stats)
-    return <p className="text-center text-gray-600 mt-6">Loading statistics...</p>;
+    return (
+      <p className="text-center text-gray-600 mt-6">Loading statistics...</p>
+    );
+
+  // ✅ Automatically compute total
+  const total =
+    (stats.completed || 0) +
+    (stats.ongoing || 0) +
+    (stats.pending || 0) +
+    (stats.not_started || 0) +
+    (stats.under_procurement || 0) +
+    (stats.stalled || 0);
 
   const cards = [
     { label: "Completed", value: stats.completed, color: "bg-green-600" },
@@ -32,15 +42,16 @@ const StatusCards = () => {
     { label: "Pending", value: stats.pending, color: "bg-yellow-500" },
     { label: "Not Started", value: stats.not_started, color: "bg-gray-600" },
     { label: "Under Procurement", value: stats.under_procurement, color: "bg-purple-600" },
+    { label: "Stalled", value: stats.stalled, color: "bg-red-600" }, // ✅ Added
     {
       label: "Total Projects",
-      value: stats.total_projects,
+      value: total,
       color: "bg-white border text-black shadow",
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4 mb-6">
       {cards.map((card, idx) => (
         <motion.div
           key={idx}

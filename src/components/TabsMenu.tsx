@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { axiosClient } from "../api/axiosClient";
 import { useLocation } from "react-router-dom";
 
@@ -29,7 +29,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
 
-  // Scroll to dropdown when coming from another page
+  // ✅ Smooth scroll to dropdown when coming from another page
   useEffect(() => {
     if (location.state?.activeTab) {
       setActiveDropdown(location.state.activeTab);
@@ -41,7 +41,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     }
   }, [location.state]);
 
-  // Helper: fetch paginated data (wards)
+  // ✅ Helper: fetch paginated data (wards)
   const fetchAllPages = async (url: string): Promise<any[]> => {
     let allResults: any[] = [];
     let nextUrl: string | null = url;
@@ -54,16 +54,16 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     return allResults;
   };
 
-  // Fetch dropdown data
+  // ✅ Fetch dropdown data once
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
       try {
         const [deptRes, subRes, yearRes, allWards] = await Promise.all([
-          axiosClient.get("http://192.168.100.32:8000/departments/"),
-          axiosClient.get("http://192.168.100.32:8000/subcounties/"),
-          axiosClient.get("http://192.168.100.32:8000/financial-years/"),
-          fetchAllPages("http://192.168.100.32:8000/wards/"),
+          axiosClient.get("http://192.168.100.40:8000/departments/"),
+          axiosClient.get("http://192.168.100.40:8000/subcounties/"),
+          axiosClient.get("http://192.168.100.40:8000/financial-years/"),
+          fetchAllPages("http://192.168.100.40:8000/wards/"),
         ]);
         setDepartments(deptRes.data.results || []);
         setSubcounties(subRes.data.results || []);
@@ -79,7 +79,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     fetchAll();
   }, []);
 
-  // Handle dropdown change
+  // ✅ Stable handler for dropdown changes
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFilters = { ...filters, [e.target.name]: e.target.value };
     setFilters(newFilters);
@@ -87,6 +87,12 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     setActiveDropdown(null);
   };
 
+  // ✅ Stable toggle handler to prevent instant closing
+  const toggleDropdown = useCallback((type: string) => {
+    setActiveDropdown((prev) => (prev === type ? null : type));
+  }, []);
+
+  // ✅ Reset filters
   const resetFilters = () => {
     const cleared = {
       department_name: "",
@@ -111,7 +117,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
       ref={dropdownRef}
       className="bg-white shadow-sm p-4 rounded-md relative z-50 overflow-visible"
     >
-      {/* Top Navigation Tabs */}
+      {/* 🔹 Top Navigation Tabs */}
       <div className="flex flex-wrap justify-center items-center gap-6 mb-3 text-blue-600 font-medium">
         <button
           onClick={resetFilters}
@@ -120,7 +126,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
           All Projects
         </button>
         <button
-          onClick={() => setActiveDropdown("financial")}
+          onClick={() => toggleDropdown("financial")}
           className={`px-4 py-1 rounded-full transition ${
             activeDropdown === "financial"
               ? "bg-green-700 text-white"
@@ -130,7 +136,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
           Per Financial Year
         </button>
         <button
-          onClick={() => setActiveDropdown("status")}
+          onClick={() => toggleDropdown("status")}
           className={`transition hover:text-green-700 ${
             activeDropdown === "status" ? "font-semibold" : ""
           }`}
@@ -138,7 +144,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
           Per Status
         </button>
         <button
-          onClick={() => setActiveDropdown("department")}
+          onClick={() => toggleDropdown("department")}
           className={`transition hover:text-green-700 ${
             activeDropdown === "department" ? "font-semibold" : ""
           }`}
@@ -146,7 +152,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
           Per Department
         </button>
         <button
-          onClick={() => setActiveDropdown("subcounty")}
+          onClick={() => toggleDropdown("subcounty")}
           className={`transition hover:text-green-700 ${
             activeDropdown === "subcounty" ? "font-semibold" : ""
           }`}
@@ -154,7 +160,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
           Per Subcounty
         </button>
         <button
-          onClick={() => setActiveDropdown("ward")}
+          onClick={() => toggleDropdown("ward")}
           className={`transition hover:text-green-700 ${
             activeDropdown === "ward" ? "font-semibold" : ""
           }`}
@@ -163,7 +169,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
         </button>
       </div>
 
-      {/* Dropdown Filters */}
+      {/* 🔽 Dropdown Filters */}
       <div className="flex justify-center relative z-50">
         {activeDropdown === "financial" && (
           <select
@@ -194,6 +200,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
             <option value="pending">Pending</option>
             <option value="not_started">Not Started</option>
             <option value="under_procurement">Under Procurement</option>
+            <option value="stalled">Stalled</option>
           </select>
         )}
 
@@ -246,7 +253,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
         )}
       </div>
 
-      {/* Simple fade-in animation */}
+      {/* ✨ Fade animation */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(-6px); }

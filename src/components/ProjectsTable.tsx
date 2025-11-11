@@ -12,7 +12,6 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProjects, setFilteredProjects] = useState<Project[]>(projects);
 
-  // Filter projects when search term changes
   useEffect(() => {
     if (!searchTerm.trim()) {
       setFilteredProjects(projects);
@@ -34,7 +33,6 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
       </div>
     );
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -102,6 +100,8 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
                         ? "bg-yellow-100 text-yellow-700"
                         : project.status === "under_procurement"
                         ? "bg-purple-100 text-purple-700"
+                        : project.status === "stalled"
+                        ? "bg-red-100 text-red-700"
                         : "bg-gray-100 text-gray-700"
                     }`}
                   >
@@ -173,7 +173,6 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
         </button>
       </div>
 
-      {/* Page Info */}
       <div className="text-center mt-3 text-sm text-gray-600">
         Page <span className="font-semibold">{currentPage}</span> of{" "}
         <span className="font-semibold">{totalPages}</span>
