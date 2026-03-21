@@ -26,7 +26,6 @@ interface Feedback {
   created_at: string;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function initials(name: string) {
   return name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 }
@@ -116,9 +115,7 @@ const FeedbackCard: React.FC<{
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-800">{fb.name}</p>
-            <p className="text-xs text-gray-400">
-              {fb.email} · {timeAgo(fb.created_at)}
-            </p>
+            <p className="text-xs text-gray-400">{timeAgo(fb.created_at)}</p>
           </div>
           {fb.is_resolved && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium flex-shrink-0">
@@ -247,13 +244,7 @@ const FeedbackCard: React.FC<{
             onClick={() => setShowForm(true)}
             className="flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-100 transition"
           >
-            <svg
-              className="w-3 h-3"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
+            <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M2 10C2 6.686 4.686 4 8 4h4M9 2l3 2-3 2" />
             </svg>
             Join the conversation
@@ -264,7 +255,7 @@ const FeedbackCard: React.FC<{
   );
 };
 
-// ── Feedback modal — shows all feedback + replies for a project ───────────────
+// ── Feedback thread modal ─────────────────────────────────────────────────────
 const FeedbackThreadModal: React.FC<{
   projectTitle: string;
   onClose: () => void;
@@ -273,7 +264,11 @@ const FeedbackThreadModal: React.FC<{
   const [fbLoading, setFbLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
-  const [submitForm, setSubmitForm] = useState({ name: "", email: "", feedback: "" });
+  const [submitForm, setSubmitForm] = useState({
+    name: "",
+    email: "",
+    feedback: "",
+  });
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -349,7 +344,6 @@ const FeedbackThreadModal: React.FC<{
             <p className="text-xs text-gray-400 mt-0.5">{projectTitle}</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Refresh */}
             <button
               onClick={() => loadFeedbacks(true)}
               disabled={refreshing}
@@ -378,7 +372,7 @@ const FeedbackThreadModal: React.FC<{
         {/* Scrollable body */}
         <div className="overflow-y-auto px-6 py-5 flex-1">
 
-          {/* Submit feedback button / form */}
+          {/* Submit form */}
           <div className="mb-5">
             {!showSubmitForm ? (
               <button
@@ -412,31 +406,18 @@ const FeedbackThreadModal: React.FC<{
                     </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Name <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Your name"
-                            value={submitForm.name}
-                            onChange={(e) => setSubmitForm({ ...submitForm, name: e.target.value })}
-                            className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400 text-gray-700 placeholder-gray-400"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Email <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="email"
-                            placeholder="Your email"
-                            value={submitForm.email}
-                            onChange={(e) => setSubmitForm({ ...submitForm, email: e.target.value })}
-                            className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400 text-gray-700 placeholder-gray-400"
-                          />
-                        </div>
+                      {/* Name only — no email */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Your name"
+                          value={submitForm.name}
+                          onChange={(e) => setSubmitForm({ ...submitForm, name: e.target.value })}
+                          className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400 text-gray-700 placeholder-gray-400"
+                        />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -479,14 +460,12 @@ const FeedbackThreadModal: React.FC<{
             )}
           </div>
 
-          {/* Feedback loading */}
           {fbLoading && (
             <p className="text-xs text-gray-400 animate-pulse py-4 text-center">
               Loading feedback...
             </p>
           )}
 
-          {/* Empty state */}
           {!fbLoading && feedbacks.length === 0 && !showSubmitForm && (
             <div className="text-center py-10 border border-dashed border-gray-200 rounded-xl">
               <p className="text-sm text-gray-400 mb-2">
@@ -501,7 +480,6 @@ const FeedbackThreadModal: React.FC<{
             </div>
           )}
 
-          {/* Feedback cards with replies */}
           {!fbLoading && feedbacks.length > 0 && (
             <div className="space-y-3">
               {feedbacks.map((fb) => (
@@ -552,7 +530,10 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
 
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentProjects = filteredProjects.slice(startIndex, startIndex + itemsPerPage);
+  const currentProjects = filteredProjects.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
@@ -589,10 +570,7 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
           </thead>
           <tbody>
             {currentProjects.map((project) => (
-              <tr
-                key={project.id}
-                className="border-t hover:bg-gray-50 transition"
-              >
+              <tr key={project.id} className="border-t hover:bg-gray-50 transition">
                 <td className="p-3">{project.title}</td>
                 <td className="p-3">{project.department_name}</td>
                 <td className="p-3">{project.financial_year_name}</td>
@@ -603,7 +581,6 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
                     {project.status?.replace(/_/g, " ") || "N/A"}
                   </span>
                 </td>
-                {/* View button — unchanged, opens description modal */}
                 <td className="p-3">
                   <button
                     onClick={() => setSelectedProject(project)}
@@ -612,7 +589,6 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
                     View
                   </button>
                 </td>
-                {/* Feedback button — now opens feedback thread modal */}
                 <td className="p-3">
                   <button
                     onClick={() => setFeedbackProject(project.title)}
@@ -675,7 +651,7 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
         <span className="font-semibold">{totalPages}</span>
       </div>
 
-      {/* ── Description modal — unchanged ── */}
+      {/* Description modal — unchanged */}
       {selectedProject && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
@@ -696,9 +672,7 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
                 {selectedProject.actual_completion_date || "N/A"}
               </p>
               <hr className="my-3" />
-              <p>
-                <strong>Description:</strong>
-              </p>
+              <p><strong>Description:</strong></p>
               <p className="text-gray-600 whitespace-pre-wrap">
                 {selectedProject.description || "No description provided."}
               </p>
@@ -713,7 +687,7 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
         </div>
       )}
 
-      {/* ── Feedback thread modal ── */}
+      {/* Feedback thread modal */}
       {feedbackProject && (
         <FeedbackThreadModal
           projectTitle={feedbackProject}

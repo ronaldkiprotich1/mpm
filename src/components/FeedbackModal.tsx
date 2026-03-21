@@ -14,7 +14,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
   projectTitle,
   onSubmitted,
 }) => {
-  const [form, setForm] = useState({ name: "", email: "", feedback: "" });
+  const [form, setForm] = useState({ name: "", feedback: "" });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
     setError("");
     setMessage("");
 
-    if (!form.name || !form.email || !form.feedback) {
+    if (!form.name || !form.feedback) {
       setError("⚠️ All fields are required.");
       return;
     }
@@ -43,19 +43,18 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
     try {
       await axiosClient.post("feedbacks/", {
         name: form.name,
-        email: form.email,
+        email: "noreply@public.com",
         feedback: projectTitle
           ? `Project: ${projectTitle}\n\n${form.feedback}`
           : form.feedback,
       });
 
-      setMessage("✓ Feedback submitted! Redirecting you back...");
-      setForm({ name: "", email: "", feedback: "" });
+      setMessage("✓ Feedback submitted!");
+      setForm({ name: "", feedback: "" });
 
       setTimeout(() => {
         setMessage("");
         onClose();
-        // Tell Home to reopen the project detail modal
         if (onSubmitted) onSubmitted();
       }, 1200);
     } catch {
@@ -111,21 +110,6 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              placeholder="Enter your email"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-700"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
               Feedback <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -140,22 +124,14 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
             />
           </div>
 
-          {error && (
-            <p className="text-red-600 text-sm text-center">{error}</p>
-          )}
-          {message && (
-            <p className="text-green-700 text-sm text-center font-medium">
-              {message}
-            </p>
-          )}
+          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+          {message && <p className="text-green-700 text-sm text-center font-medium">{message}</p>}
 
           <button
             type="submit"
             disabled={loading}
             className={`w-full py-2.5 text-white font-semibold rounded-lg transition ${
-              loading
-                ? "bg-green-400 cursor-not-allowed"
-                : "bg-green-700 hover:bg-green-800"
+              loading ? "bg-green-400 cursor-not-allowed" : "bg-green-700 hover:bg-green-800"
             }`}
           >
             {loading ? "Submitting..." : "Submit Feedback"}
