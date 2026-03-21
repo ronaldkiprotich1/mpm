@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { axiosClient } from "../api/axiosClient";
 import TabsMenu from "../components/TabsMenu";
 import StatusCards from "../components/StatusCards";
 import ProjectsTable from "../components/ProjectsTable";
-import { Project } from "../types/Project";
 import FeedbackModal from "../components/FeedbackModal";
+import { Project } from "../types/Project";
 
 const Home = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -12,14 +12,12 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openFeedback, setOpenFeedback] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
-
-  const BASE_URL = "http://192.168.100.40:8000/projects/";
+  const [feedbackProjectTitle, setFeedbackProjectTitle] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await axios.get(BASE_URL);
+        const res = await axiosClient.get("projects/");
         const data = res.data.results || res.data;
         setProjects(data);
         setFiltered(data);
@@ -33,7 +31,6 @@ const Home = () => {
     fetchProjects();
   }, []);
 
- 
   const handleFilterChange = async (filters: {
     financial_year_name?: string;
     department_name?: string;
@@ -42,58 +39,59 @@ const Home = () => {
     status?: string;
   }) => {
     try {
-      let url = BASE_URL;
-      const params = [];
-
-      if (filters.department_name)
-        params.push(`department_name=${encodeURIComponent(filters.department_name)}`);
-      if (filters.ward_name)
-        params.push(`ward_name=${encodeURIComponent(filters.ward_name)}`);
-      if (filters.subcounty_name)
-        params.push(`subcounty_name=${encodeURIComponent(filters.subcounty_name)}`);
-      if (filters.financial_year_name)
-        params.push(`financial_year_name=${encodeURIComponent(filters.financial_year_name)}`);
-      if (filters.status)
-        params.push(`status=${encodeURIComponent(filters.status)}`);
-
-      if (params.length > 0) url += `?${params.join("&")}`;
-
-      const response = await axios.get(url);
-      const data = response.data.results || response.data;
-      setFiltered(data);
+      const params = new URLSearchParams();
+      if (filters.department_name) params.append("department_name", filters.department_name);
+      if (filters.ward_name) params.append("ward_name", filters.ward_name);
+      if (filters.subcounty_name) params.append("subcounty_name", filters.subcounty_name);
+      if (filters.financial_year_name) params.append("financial_year_name", filters.financial_year_name);
+      if (filters.status) params.append("status", filters.status);
+      const url = params.toString() ? `projects/?${params.toString()}` : "projects/";
+      const response = await axiosClient.get(url);
+      setFiltered(response.data.results || response.data);
     } catch (err) {
       console.error("Filter fetch error:", err);
       setError("Could not filter projects. Try again.");
     }
   };
 
+  // Listen for openFeedback event fired from AllProjects
   useEffect(() => {
-    const handleOpenFeedback = (event: any) => {
-      setSelectedProject(event.detail || null);
+    const handler = (event: CustomEvent) => {
+      setFeedbackProjectTitle(event.detail || null);
       setOpenFeedback(true);
     };
-
-    window.addEventListener("openFeedback", handleOpenFeedback);
-    return () => window.removeEventListener("openFeedback", handleOpenFeedback);
+    window.addEventListener("openFeedback", handler as EventListener);
+    return () => window.removeEventListener("openFeedback", handler as EventListener);
   }, []);
 
-  if (loading) return <p className="text-center mt-10 text-gray-600">Loading...</p>;
-  if (error) return <p className="text-center mt-10 text-red-600">{error}</p>;
+  if (loading)
+    return <p className="text-center mt-10 text-gray-500 animate-pulse">Loading projects...</p>;
+  if (error)
+    return <p className="text-center mt-10 text-red-600 font-medium">{error}</p>;
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
+    <div className="min-h-screen bg-gray-50">
       <TabsMenu onFilterChange={handleFilterChange} />
-
       <div className="px-4 sm:px-8 py-6">
         <StatusCards />
         <ProjectsTable projects={filtered} />
       </div>
 
-  
       <FeedbackModal
         isOpen={openFeedback}
         onClose={() => setOpenFeedback(false)}
-        projectTitle={selectedProject}
+        projectTitle={feedbackProjectTitle}
+        onSubmitted={() => {
+          // After submitting — reopen the project detail modal
+          // so user sees their feedback + can see replies
+          if (feedbackProjectTitle) {
+            window.dispatchEvent(
+              new CustomEvent("reopenProjectModal", {
+                detail: feedbackProjectTitle,
+              })
+            );
+          }
+        }}
       />
     </div>
   );

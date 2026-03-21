@@ -1,12 +1,11 @@
 import axios from "axios";
 
 export const axiosClient = axios.create({
-  baseURL: "http://192.168.100.40:8000/", 
+  baseURL: "http://192.168.100.169:8000/api/",
   headers: {
     "Content-Type": "application/json",
   },
 });
-
 
 axiosClient.interceptors.response.use(
   (response) => response,

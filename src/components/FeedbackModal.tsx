@@ -5,18 +5,16 @@ interface FeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
   projectTitle?: string | null;
+  onSubmitted?: () => void;
 }
 
 const FeedbackModal: React.FC<FeedbackModalProps> = ({
   isOpen,
   onClose,
   projectTitle,
+  onSubmitted,
 }) => {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    feedback: "",
-  });
+  const [form, setForm] = useState({ name: "", email: "", feedback: "" });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,9 +23,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  ) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,33 +34,32 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
       setError("⚠️ All fields are required.");
       return;
     }
-
-    if (form.feedback.split(" ").length > 500) {
-      setError("⚠️ Feedback exceeds 500 words limit.");
+    if (form.feedback.trim().split(/\s+/).length > 500) {
+      setError("⚠️ Feedback exceeds 500 words.");
       return;
     }
 
     setLoading(true);
     try {
-      const finalFeedback = projectTitle
-        ? `Project: ${projectTitle}\n\n${form.feedback}`
-        : form.feedback;
-
-      const res = await axiosClient.post("feedbacks/", {
-        ...form,
-        feedback: finalFeedback,
+      await axiosClient.post("feedbacks/", {
+        name: form.name,
+        email: form.email,
+        feedback: projectTitle
+          ? `Project: ${projectTitle}\n\n${form.feedback}`
+          : form.feedback,
       });
 
-      setMessage(" Feedback submitted successfully!");
+      setMessage("✓ Feedback submitted! Redirecting you back...");
       setForm({ name: "", email: "", feedback: "" });
 
       setTimeout(() => {
         setMessage("");
         onClose();
-      }, 1500);
-    } catch (err) {
-      console.error("Feedback submission failed:", err);
-      setError(" Failed to submit feedback. Please check backend connection.");
+        // Tell Home to reopen the project detail modal
+        if (onSubmitted) onSubmitted();
+      }, 1200);
+    } catch {
+      setError("Failed to submit. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -72,27 +67,29 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 animate-fadeIn"
+      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative"
+        className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md relative"
         onClick={(e) => e.stopPropagation()}
+        style={{ animation: "fadeIn 0.2s ease-in-out" }}
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-black text-xl"
+          className="absolute top-4 right-5 text-gray-400 hover:text-red-500 text-2xl font-bold leading-none"
         >
-          ✕
+          ×
         </button>
 
-        <h2 className="text-xl font-semibold text-green-800 text-center mb-4">
+        <h2 className="text-xl font-bold text-green-800 text-center mb-1">
           Submit Feedback
         </h2>
 
         {projectTitle && (
-          <p className="text-sm text-center text-gray-600 mb-2">
-            <span className="font-semibold">Project:</span> {projectTitle}
+          <p className="text-sm text-center text-gray-500 mb-5">
+            <span className="font-semibold text-gray-700">Project:</span>{" "}
+            {projectTitle}
           </p>
         )}
 
@@ -107,8 +104,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
               value={form.name}
               onChange={handleChange}
               required
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
               placeholder="Enter your name"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-700"
             />
           </div>
 
@@ -122,8 +119,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
               value={form.email}
               onChange={handleChange}
               required
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
               placeholder="Enter your email"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-700"
             />
           </div>
 
@@ -136,21 +133,26 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
               value={form.feedback}
               onChange={handleChange}
               required
+              rows={5}
               maxLength={3000}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 h-28 resize-none focus:outline-none focus:ring-2 focus:ring-green-400"
               placeholder="Write your feedback (max 500 words)"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-700"
             />
           </div>
 
-          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+          {error && (
+            <p className="text-red-600 text-sm text-center">{error}</p>
+          )}
           {message && (
-            <p className="text-green-700 text-sm text-center">{message}</p>
+            <p className="text-green-700 text-sm text-center font-medium">
+              {message}
+            </p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 text-white font-semibold rounded-md transition ${
+            className={`w-full py-2.5 text-white font-semibold rounded-lg transition ${
               loading
                 ? "bg-green-400 cursor-not-allowed"
                 : "bg-green-700 hover:bg-green-800"
@@ -165,9 +167,6 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({
         @keyframes fadeIn {
           from { opacity: 0; transform: scale(0.97); }
           to { opacity: 1; transform: scale(1); }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.25s ease-in-out;
         }
       `}</style>
     </div>

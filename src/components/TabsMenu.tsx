@@ -11,6 +11,16 @@ interface Ward { id: number; name: string; }
 interface Subcounty { id: number; name: string; }
 interface FinancialYear { id: number; year: string; }
 
+// Status values must match exactly what Django stores in the DB
+const STATUS_OPTIONS = [
+  { label: "Completed", value: "Completed" },
+  { label: "Ongoing", value: "Ongoing" },
+  { label: "Pending", value: "Pending" },
+  { label: "Not Started", value: "Not Started" },
+  { label: "Under Procurement", value: "Under Procurement" },
+  { label: "Stalled", value: "Stalled" },
+];
+
 const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
@@ -29,7 +39,6 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
 
-  // ✅ Smooth scroll to dropdown when coming from another page
   useEffect(() => {
     if (location.state?.activeTab) {
       setActiveDropdown(location.state.activeTab);
@@ -41,33 +50,33 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     }
   }, [location.state]);
 
-  // ✅ Helper: fetch paginated data (wards)
-  const fetchAllPages = async (url: string): Promise<any[]> => {
+  // Fetch all pages for paginated endpoints
+  const fetchAllPages = async (path: string): Promise<any[]> => {
     let allResults: any[] = [];
-    let nextUrl: string | null = url;
+    // Use full URL for next-page links (they come back as absolute URLs from DRF)
+    let nextUrl: string | null = `http://192.168.100.169:8000/api/${path}`;
     while (nextUrl) {
-      const res: any = await axiosClient.get(nextUrl);
+      const res = await axiosClient.get(nextUrl);
       const data: any = res.data;
       allResults = [...allResults, ...(data.results || [])];
-      nextUrl = data.next;
+      nextUrl = data.next || null;
     }
     return allResults;
   };
 
-  // ✅ Fetch dropdown data once
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
       try {
         const [deptRes, subRes, yearRes, allWards] = await Promise.all([
-          axiosClient.get("http://192.168.100.40:8000/departments/"),
-          axiosClient.get("http://192.168.100.40:8000/subcounties/"),
-          axiosClient.get("http://192.168.100.40:8000/financial-years/"),
-          fetchAllPages("http://192.168.100.40:8000/wards/"),
+          axiosClient.get("departments/"),
+          axiosClient.get("subcounties/"),
+          axiosClient.get("financial-years/"),
+          fetchAllPages("wards/"),
         ]);
-        setDepartments(deptRes.data.results || []);
-        setSubcounties(subRes.data.results || []);
-        setYears(yearRes.data.results || []);
+        setDepartments(deptRes.data.results || deptRes.data || []);
+        setSubcounties(subRes.data.results || subRes.data || []);
+        setYears(yearRes.data.results || yearRes.data || []);
         setWards(allWards);
       } catch (err) {
         console.error("Dropdown fetch error:", err);
@@ -79,7 +88,6 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     fetchAll();
   }, []);
 
-  // ✅ Stable handler for dropdown changes
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newFilters = { ...filters, [e.target.name]: e.target.value };
     setFilters(newFilters);
@@ -87,12 +95,10 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
     setActiveDropdown(null);
   };
 
-  // ✅ Stable toggle handler to prevent instant closing
   const toggleDropdown = useCallback((type: string) => {
     setActiveDropdown((prev) => (prev === type ? null : type));
   }, []);
 
-  // ✅ Reset filters
   const resetFilters = () => {
     const cleared = {
       department_name: "",
@@ -117,7 +123,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
       ref={dropdownRef}
       className="bg-white shadow-sm p-4 rounded-md relative z-50 overflow-visible"
     >
-      {/* 🔹 Top Navigation Tabs */}
+      {/* Navigation Tabs */}
       <div className="flex flex-wrap justify-center items-center gap-6 mb-3 text-blue-600 font-medium">
         <button
           onClick={resetFilters}
@@ -125,58 +131,35 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
         >
           All Projects
         </button>
-        <button
-          onClick={() => toggleDropdown("financial")}
-          className={`px-4 py-1 rounded-full transition ${
-            activeDropdown === "financial"
-              ? "bg-green-700 text-white"
-              : "hover:text-green-700"
-          }`}
-        >
-          Per Financial Year
-        </button>
-        <button
-          onClick={() => toggleDropdown("status")}
-          className={`transition hover:text-green-700 ${
-            activeDropdown === "status" ? "font-semibold" : ""
-          }`}
-        >
-          Per Status
-        </button>
-        <button
-          onClick={() => toggleDropdown("department")}
-          className={`transition hover:text-green-700 ${
-            activeDropdown === "department" ? "font-semibold" : ""
-          }`}
-        >
-          Per Department
-        </button>
-        <button
-          onClick={() => toggleDropdown("subcounty")}
-          className={`transition hover:text-green-700 ${
-            activeDropdown === "subcounty" ? "font-semibold" : ""
-          }`}
-        >
-          Per Subcounty
-        </button>
-        <button
-          onClick={() => toggleDropdown("ward")}
-          className={`transition hover:text-green-700 ${
-            activeDropdown === "ward" ? "font-semibold" : ""
-          }`}
-        >
-          Per Ward
-        </button>
+        {[
+          { key: "financial", label: "Per Financial Year" },
+          { key: "status", label: "Per Status" },
+          { key: "department", label: "Per Department" },
+          { key: "subcounty", label: "Per Subcounty" },
+          { key: "ward", label: "Per Ward" },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => toggleDropdown(key)}
+            className={`px-4 py-1 rounded-full transition ${
+              activeDropdown === key
+                ? "bg-green-700 text-white"
+                : "hover:text-green-700"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* 🔽 Dropdown Filters */}
+      {/* Dropdown Filters */}
       <div className="flex justify-center relative z-50">
         {activeDropdown === "financial" && (
           <select
             name="financial_year_name"
             onChange={handleChange}
             value={filters.financial_year_name}
-            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg relative z-50 animate-fadeIn"
+            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg animate-fadeIn"
           >
             <option value="">Select Financial Year</option>
             {years.map((y) => (
@@ -192,15 +175,14 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
             name="status"
             onChange={handleChange}
             value={filters.status}
-            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg relative z-50 animate-fadeIn"
+            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg animate-fadeIn"
           >
             <option value="">Select Status</option>
-            <option value="completed">Completed</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="pending">Pending</option>
-            <option value="not_started">Not Started</option>
-            <option value="under_procurement">Under Procurement</option>
-            <option value="stalled">Stalled</option>
+            {STATUS_OPTIONS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
           </select>
         )}
 
@@ -209,7 +191,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
             name="department_name"
             onChange={handleChange}
             value={filters.department_name}
-            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg relative z-50 animate-fadeIn"
+            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg animate-fadeIn"
           >
             <option value="">Select Department</option>
             {departments.map((dept) => (
@@ -225,7 +207,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
             name="subcounty_name"
             onChange={handleChange}
             value={filters.subcounty_name}
-            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg relative z-50 animate-fadeIn"
+            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg animate-fadeIn"
           >
             <option value="">Select Subcounty</option>
             {subcounties.map((s) => (
@@ -241,7 +223,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
             name="ward_name"
             onChange={handleChange}
             value={filters.ward_name}
-            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg relative z-50 animate-fadeIn"
+            className="border border-gray-400 rounded-md px-3 py-2 bg-white shadow-lg animate-fadeIn"
           >
             <option value="">Select Ward</option>
             {wards.map((w) => (
@@ -253,15 +235,12 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
         )}
       </div>
 
-      {/* ✨ Fade animation */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(-6px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fadeIn {
-          animation: fadeIn 0.25s ease-in-out;
-        }
+        .animate-fadeIn { animation: fadeIn 0.25s ease-in-out; }
       `}</style>
     </div>
   );
