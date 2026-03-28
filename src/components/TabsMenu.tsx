@@ -54,7 +54,7 @@ const TabsMenu: React.FC<TabsMenuProps> = ({ onFilterChange }) => {
   const fetchAllPages = async (path: string): Promise<any[]> => {
     let allResults: any[] = [];
     // Use full URL for next-page links (they come back as absolute URLs from DRF)
-    let nextUrl: string | null = `http://192.168.100.174:8000/api/${path}`;
+    let nextUrl: string | null = `http://192.168.100.176:8000/api/${path}`;
     while (nextUrl) {
       const res = await axiosClient.get(nextUrl);
       const data: any = res.data;

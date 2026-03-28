@@ -264,11 +264,9 @@ const FeedbackThreadModal: React.FC<{
   const [fbLoading, setFbLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
-  const [submitForm, setSubmitForm] = useState({
-    name: "",
-    email: "",
-    feedback: "",
-  });
+
+  // ✅ Email removed from state
+  const [submitForm, setSubmitForm] = useState({ name: "", feedback: "" });
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -294,7 +292,8 @@ const FeedbackThreadModal: React.FC<{
   }, [projectTitle]);
 
   const handleSubmit = async () => {
-    if (!submitForm.name.trim() || !submitForm.email.trim() || !submitForm.feedback.trim()) {
+    // ✅ Email removed from validation
+    if (!submitForm.name.trim() || !submitForm.feedback.trim()) {
       setSubmitError("All fields are required.");
       return;
     }
@@ -307,11 +306,11 @@ const FeedbackThreadModal: React.FC<{
     try {
       await axiosClient.post("feedbacks/", {
         name: submitForm.name,
-        email: submitForm.email,
+        email: "noreply@public.com", // ✅ hardcoded default
         feedback: `Project: ${projectTitle}\n\n${submitForm.feedback}`,
       });
       setSubmitSuccess(true);
-      setSubmitForm({ name: "", email: "", feedback: "" });
+      setSubmitForm({ name: "", feedback: "" });
       setTimeout(() => {
         setSubmitSuccess(false);
         setShowSubmitForm(false);
@@ -406,7 +405,6 @@ const FeedbackThreadModal: React.FC<{
                     </div>
                   ) : (
                     <>
-                      {/* Name only — no email */}
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">
                           Name <span className="text-red-500">*</span>
@@ -415,7 +413,9 @@ const FeedbackThreadModal: React.FC<{
                           type="text"
                           placeholder="Your name"
                           value={submitForm.name}
-                          onChange={(e) => setSubmitForm({ ...submitForm, name: e.target.value })}
+                          onChange={(e) =>
+                            setSubmitForm({ ...submitForm, name: e.target.value })
+                          }
                           className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400 text-gray-700 placeholder-gray-400"
                         />
                       </div>
@@ -426,7 +426,9 @@ const FeedbackThreadModal: React.FC<{
                         <textarea
                           placeholder="Share your thoughts... (max 500 words)"
                           value={submitForm.feedback}
-                          onChange={(e) => setSubmitForm({ ...submitForm, feedback: e.target.value })}
+                          onChange={(e) =>
+                            setSubmitForm({ ...submitForm, feedback: e.target.value })
+                          }
                           rows={4}
                           className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400 text-gray-700 placeholder-gray-400 resize-none"
                         />
@@ -436,7 +438,10 @@ const FeedbackThreadModal: React.FC<{
                       )}
                       <div className="flex justify-end gap-2">
                         <button
-                          onClick={() => { setShowSubmitForm(false); setSubmitError(""); }}
+                          onClick={() => {
+                            setShowSubmitForm(false);
+                            setSubmitError("");
+                          }}
                           className="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition"
                         >
                           Cancel
@@ -651,7 +656,7 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({ projects }) => {
         <span className="font-semibold">{totalPages}</span>
       </div>
 
-      {/* Description modal — unchanged */}
+      {/* Description modal */}
       {selectedProject && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
